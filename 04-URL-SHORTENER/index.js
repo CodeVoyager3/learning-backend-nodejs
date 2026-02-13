@@ -1,7 +1,7 @@
 const express = require('express')
 const path = require('path')
 const cookieParser = require('cookie-parser')
-const {restrictToLoggedInUserOnly} = require('./middlewares/auth')
+const {checkForAuthentication,restrictTo} = require('./middlewares/auth')
 const { connectToMongoDB } = require('./connect')
 
 const URL = require('./models/url');
@@ -27,8 +27,9 @@ app.set('views',path.resolve("./views"));
 app.use(express.json())
 app.use(express.urlencoded({ extended : false}))
 app.use(cookieParser())
+app.use(checkForAuthentication);
 
-app.use("/url", urlRoute);
+app.use("/url",restrictTo(['NORMAL']), urlRoute);
 app.use("/user", userRoute);
 app.use("/", staticRoute)
 

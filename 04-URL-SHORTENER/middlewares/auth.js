@@ -1,17 +1,35 @@
 const {getUser} = require('../services/auth')
 
-async function restrictToLoggedInUserOnly(req,res,next){
-    const userUid = req.cookies.uid;
+function checkForAuthentication(req,res,next){
+    const authorizationHeaderValue = req.cookies?.token;
+    if(!authorizationHeaderValue || !authorizationHeaderValue.startsWith('Bearer')) 
+    return next()
 
-    if(!userUid) return res.redirect('/login');
-    const user = getUser(userUid);
+    const token = tokenCookie;
+    const user = getUser(token)
 
-    if(!user) return res.redirect('/login');;
+    req.user = user ;
+    return next()
+}
 
-    req.user = user;
-    next();
+
+function restrictTo(roles){
+    return function(req,res,next){
+        if(!req.user) return res.redirect("/login")
+
+        if(!roles.includes(req.user.role)) return res.end("Unauthorized")
+
+        return next()
+    }
+}
+
+function restrictToLoggedInUserOnly(req, res, next){
+    if(!req.user) return res.redirect("/login")
+    return next()
 }
 
 module.exports = {
+    restrictTo,
+    checkForAuthentication,
     restrictToLoggedInUserOnly,
 }
